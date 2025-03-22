@@ -3,11 +3,14 @@ import json
 import os
 import random
 import time
+import threading
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from aiogram.utils.markdown import hbold, hitalic, hunderline
+from flask import Flask
+
 
 # API-токен вашего бота
 API_TOKEN = '7537085884:AAGuseMdxP0Uwlhhv4Ltgg3-hmo0EJYkAG4'
@@ -15,6 +18,30 @@ API_TOKEN = '7537085884:AAGuseMdxP0Uwlhhv4Ltgg3-hmo0EJYkAG4'
 # Инициализация бота и диспетчера
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
+
+# Пример команды
+@dp.message()
+async def echo(message: types.Message):
+    await message.reply(message.text)
+
+# Flask веб-сервер
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Bot is running!"
+
+# Запуск Flask в отдельном потоке
+def run_flask():
+    app.run(host='0.0.0.0', port=5000)
+
+# Запуск бота
+async def main():
+    threading.Thread(target=run_flask, daemon=True).start()
+    await dp.start_polling(bot)
+
+if __name__ == '__main__':
+    asyncio.run(main())
 
 # Путь к файлу для хранения данных
 DATA_FILE = "balances.json"
